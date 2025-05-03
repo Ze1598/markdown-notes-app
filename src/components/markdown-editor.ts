@@ -1,11 +1,12 @@
 // src/components/markdown-editor.ts
-import { LitElement, html, css, customElement, property } from "lit";
+import { LitElement, html, css } from "lit";
+import { customElement, property } from "lit/decorators.js";
 import { EditorState } from "@codemirror/state";
 import { EditorView, keymap } from "@codemirror/view";
 import { defaultKeymap, history, historyKeymap } from "@codemirror/commands";
 import { markdown, markdownLanguage } from "@codemirror/lang-markdown";
 import { languages } from "@codemirror/language-data";
-import { basicSetup } from "@codemirror/basic-setup"; // Note: Deprecated, use codemirror package directly in future
+// import { basicSetup } from "@codemirror/basic-setup"; // Note: Deprecated, use codemirror package directly in future
 
 // Basic CodeMirror theme (replace or extend for custom styling)
 const basicTheme = EditorView.baseTheme({

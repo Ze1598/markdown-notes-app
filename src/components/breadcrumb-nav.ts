@@ -1,5 +1,6 @@
 // src/components/breadcrumb-nav.ts
-import { LitElement, html, css, customElement, property } from "lit";
+import { LitElement, html, css } from "lit";
+import { customElement, property } from "lit/decorators.js";
 import { dbService } from "../db/database";
 import { Page } from "../types/page";
 import { navigate } from "../router";

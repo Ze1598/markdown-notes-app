@@ -1,17 +1,18 @@
 // src/components/page-viewer.ts
-import { LitElement, html, css, customElement, property, state } from "lit";
-import { RouteData } from "navi"; // Assuming RouteData might be used if Navi passes data this way
+import { LitElement, html, css } from "lit";
+import { customElement, property, state } from "lit/decorators.js"; // Added property back
 import { Page } from "../types/page";
 import { dbService } from "../db/database";
 import { navigate } from "../router";
 import "./breadcrumb-nav";
-import "./markdown-editor"; // To be created
-import "./markdown-preview"; // To be created
+import "./markdown-editor";
+import "./markdown-preview";
 
 @customElement("page-viewer")
 export class PageViewer extends LitElement {
-  // Assuming Navi passes route data via a property
-  @property({ type: Object }) routeData?: RouteData<{ page: Page }>;
+  // Accept pageData passed from app-root
+  @property({ type: Object })
+  pageData?: Page;
 
   @state() private page?: Page;
   @state() private isLoading = true;
@@ -20,30 +21,29 @@ export class PageViewer extends LitElement {
 
   connectedCallback(): void {
       super.connectedCallback();
-      // console.log("PageViewer connected, routeData:", this.routeData);
+      // Initial load based on property
       this.loadPageData();
   }
 
-  // Use updated lifecycle method to react to routeData changes
+  // Use updated lifecycle method to react to pageData property changes
   updated(changedProperties: Map<string | number | symbol, unknown>) {
-    if (changedProperties.has("routeData")) {
-        // console.log("PageViewer routeData changed:", this.routeData);
+    if (changedProperties.has("pageData")) {
+        console.log("PageViewer pageData changed:", this.pageData);
         this.loadPageData();
     }
   }
 
   loadPageData() {
-    if (this.routeData?.page) {
-      this.page = this.routeData.page;
+    if (this.pageData) {
+      this.page = this.pageData;
       this.unsavedContent = null; // Reset unsaved content when page changes
       this.isLoading = false;
       this.isEditing = true; // Default to edit mode on new page load
     } else {
-      // Handle case where page data isn't available (e.g., direct access to component without router context)
-      // Or if the router passed undefined/error state
+      // Handle case where page data isn't available
       this.isLoading = false;
       this.page = undefined;
-      console.warn("PageViewer: No page data received.");
+      console.warn("PageViewer: No page data received via pageData property.");
     }
   }
 

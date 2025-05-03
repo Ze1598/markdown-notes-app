@@ -1,5 +1,6 @@
 // src/components/not-found.ts
-import { LitElement, html, customElement } from "lit";
+import { LitElement, html } from "lit";
+import { customElement } from "lit/decorators.js";
 
 @customElement("not-found")
 export class NotFound extends LitElement {

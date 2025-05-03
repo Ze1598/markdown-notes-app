@@ -1,5 +1,6 @@
 // src/components/home-placeholder.ts
-import { LitElement, html, customElement } from "lit";
+import { LitElement, html } from "lit";
+import { customElement } from "lit/decorators.js";
 
 @customElement("home-placeholder")
 export class HomePlaceholder extends LitElement {

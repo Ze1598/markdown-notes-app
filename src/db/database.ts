@@ -74,7 +74,7 @@ export class DatabaseService extends Dexie {
   async getAncestors(id: string): Promise<Page[]> {
     const ancestors: Page[] = [];
     let currentPage = await this.getPage(id);
-    while (currentPage && currentPage.parentId && currentPage.parentId !== Dexie.minKey) {
+    while (currentPage && currentPage.parentId && currentPage.parentId !== null) {
       const parent = await this.getPage(currentPage.parentId);
       if (parent) {
         ancestors.unshift(parent); // Add parent to the beginning of the array

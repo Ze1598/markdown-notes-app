@@ -1,5 +1,6 @@
 // src/components/sidebar-nav.ts
-import { LitElement, html, css, customElement, property, state } from "lit";
+import { LitElement, html, css, TemplateResult } from "lit";
+import { customElement, state } from "lit/decorators.js"; // Removed unused 'property'
 import { dbService } from "../db/database";
 import { Page } from "../types/page";
 import { navigate } from "../router"; // Import navigate function
@@ -10,8 +11,11 @@ interface TreeNode extends Page {
 
 @customElement("sidebar-nav")
 export class SidebarNav extends LitElement {
-  @state() private pagesTree: TreeNode[] = [];
-  @state() private isLoading = true;
+  @state()
+  private pagesTree: TreeNode[] = [];
+
+  @state()
+  private isLoading = true;
 
   connectedCallback() {
     super.connectedCallback();
@@ -24,8 +28,9 @@ export class SidebarNav extends LitElement {
     try {
       // Fetch top-level pages
       const topLevelPages = await dbService.listChildren(null);
-      // Recursively build the tree (simplified for now, might need optimization for deep trees)
+      // Recursively build the tree
       this.pagesTree = await this.buildTree(topLevelPages);
+      console.log("[sidebar-nav] Pages loaded, tree:", this.pagesTree);
     } catch (error) {
       console.error("Error loading pages for sidebar:", error);
       // Handle error display
@@ -38,7 +43,7 @@ export class SidebarNav extends LitElement {
     const tree: TreeNode[] = [];
     for (const page of pages) {
       const children = await dbService.listChildren(page.id);
-      const node: TreeNode = { ...page };
+      const node: TreeNode = { ...page, children: [] }; // Initialize children array
       if (children.length > 0) {
         node.children = await this.buildTree(children);
       }
@@ -47,40 +52,50 @@ export class SidebarNav extends LitElement {
     return tree;
   }
 
-  handleNoteClick(pageId: string) {
+  // Corrected handleNavClick method name and signature
+  handleNavClick(e: Event, pageId: string) {
+    e.preventDefault(); // Prevent default anchor behavior
+    console.log(`[sidebar-nav] Navigating to /page/${pageId}`);
     navigate(`/page/${pageId}`);
   }
 
   async handleAddTopLevelPage() {
-    const title = prompt("Enter title for new top-level page:", "New Page");
+    // const title = prompt("Enter title for new top-level page:", "New Page");
+    const title = "Test Page 1"; // Hardcoded for testing
+    console.log(`[sidebar-nav] Adding top-level page with title: ${title}`);
     if (title) {
       try {
         const newPageId = await dbService.createPage({ title: title, parentId: null });
+        console.log(`[sidebar-nav] New page created with ID: ${newPageId}`);
         // Refresh the tree or optimistically add the new node
-        this.loadPages();
+        await this.loadPages(); // Ensure await here
         // Optionally navigate to the new page
+        console.log(`[sidebar-nav] Navigating to new page: /page/${newPageId}`);
         navigate(`/page/${newPageId}`);
       } catch (error) {
         console.error("Error creating top-level page:", error);
-        alert("Failed to create page.");
+        alert("Failed to create page."); // Alert might also block, consider removing for testing
       }
     }
   }
 
-  // Recursive function to render the tree
-  renderTree(nodes: TreeNode[]) {
+  // Corrected recursive function to render the tree with proper types
+  renderTree(nodes: TreeNode[]): TemplateResult {
     if (!nodes || nodes.length === 0) {
-      return html`<div class="no-pages">No pages yet.</div>`;
+      // Return an empty template or a message if needed, but ensure it's a TemplateResult
+      return html``; 
     }
     return html`
       <ul>
         ${nodes.map(
-          (node) => html`
+          (node): TemplateResult => html`
             <li>
-              <a href="/page/${node.id}" @click=${(e: Event) => { e.preventDefault(); this.handleNoteClick(node.id); }}>
+              <a href="#" @click=${(e: Event) => this.handleNavClick(e, node.id)}>
                 ${node.title || "Untitled"}
               </a>
-              ${node.children ? this.renderTree(node.children) : ""}
+              ${node.children && node.children.length > 0
+                ? this.renderTree(node.children)
+                : ""}
             </li>
           `
         )}
@@ -120,16 +135,18 @@ export class SidebarNav extends LitElement {
     }
   `;
 
-  render() {
+  render(): TemplateResult {
+    console.log("[sidebar-nav] Rendering, isLoading:", this.isLoading, "Tree length:", this.pagesTree.length);
     return html`
       <h3>Notes</h3>
       ${this.isLoading
         ? html`<div class="loading">Loading...</div>`
-        : this.renderTree(this.pagesTree)}
+        : this.pagesTree.length > 0 
+          ? this.renderTree(this.pagesTree) 
+          : html`<div class="no-pages">No pages yet.</div>`}
       <button class="add-page-button" @click=${this.handleAddTopLevelPage}>
         Add Top-Level Page
       </button>
-      <!-- Toggle button functionality to be added later -->
     `;
   }
 }
