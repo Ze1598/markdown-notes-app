@@ -20,7 +20,14 @@ export class SidebarNav extends LitElement {
   connectedCallback() {
     super.connectedCallback();
     this.loadPages();
-    // Potentially subscribe to DB changes here if needed for real-time updates
+    // Listen for page updates
+    window.addEventListener('page-updated', () => this.loadPages());
+  }
+
+  disconnectedCallback() {
+    super.disconnectedCallback();
+    // Clean up event listener
+    window.removeEventListener('page-updated', () => this.loadPages());
   }
 
   async loadPages() {

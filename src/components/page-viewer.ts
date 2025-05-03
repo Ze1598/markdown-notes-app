@@ -72,6 +72,12 @@ export class PageViewer extends LitElement {
       try {
         await dbService.updatePage(this.page.id, { title: newTitle });
         this.page = { ...this.page, title: newTitle, updatedAt: Date.now() };
+        // Dispatch event to notify sidebar to refresh
+        const event = new CustomEvent('page-updated', { 
+          bubbles: true, 
+          composed: true 
+        });
+        this.dispatchEvent(event);
       } catch (error) {
         console.error("Error saving title:", error);
         alert("Failed to save title.");
