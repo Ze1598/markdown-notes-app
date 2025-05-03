@@ -1,7 +1,8 @@
 // src/components/app-root.ts
 import { LitElement, html, css } from "lit";
 import { customElement, state } from "lit/decorators.js"; // Use state for route
-import { Route, Router } from "navi";
+import { Route } from "navi";
+import type { Navigation } from "navi";
 import { navigation } from "../router"; // Import the navigation instance
 import "./sidebar-nav"; // Import sidebar component
 import "./page-viewer"; // Import page viewer component
@@ -13,7 +14,7 @@ console.log("[app-root.ts] File loaded");
 @customElement("app-root")
 export class AppRoot extends LitElement {
   @state() private route?: Route;
-  private router: Router;
+  private router: Navigation;
 
   constructor() {
     super();
