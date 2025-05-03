@@ -17,6 +17,7 @@ export class PageViewer extends LitElement {
   @state() private page?: Page;
   @state() private isLoading = true;
   @state() private isEditing = true; // Default to edit mode
+  @state() private isEditingTitle = false;
   @state() private unsavedContent: string | null = null; // Track content changes before saving
 
   connectedCallback(): void {
@@ -50,6 +51,41 @@ export class PageViewer extends LitElement {
   handleContentChange(event: CustomEvent<{ content: string }>) {
     this.unsavedContent = event.detail.content;
     // Optionally show an "unsaved" indicator
+  }
+
+  startTitleEdit() {
+    this.isEditingTitle = true;
+    // Focus the input after it's rendered
+    requestAnimationFrame(() => {
+      const input = this.shadowRoot?.getElementById('titleEditor') as HTMLInputElement;
+      if (input) {
+        input.focus();
+        input.select();
+      }
+    });
+  }
+
+  async saveTitleEdit(e: Event) {
+    const input = e.target as HTMLInputElement;
+    const newTitle = input.value.trim();
+    if (newTitle && this.page && newTitle !== this.page.title) {
+      try {
+        await dbService.updatePage(this.page.id, { title: newTitle });
+        this.page = { ...this.page, title: newTitle, updatedAt: Date.now() };
+      } catch (error) {
+        console.error("Error saving title:", error);
+        alert("Failed to save title.");
+      }
+    }
+    this.isEditingTitle = false;
+  }
+
+  handleTitleKeydown(e: KeyboardEvent) {
+    if (e.key === 'Enter') {
+      (e.target as HTMLInputElement).blur();
+    } else if (e.key === 'Escape') {
+      this.isEditingTitle = false;
+    }
   }
 
   async handleSave() {
@@ -109,6 +145,20 @@ export class PageViewer extends LitElement {
     .page-title {
         margin: 0;
         font-size: 1.5em;
+        cursor: pointer;
+    }
+    .page-title span:hover {
+        background: #f0f0f0;
+        border-radius: 3px;
+        padding: 2px 4px;
+    }
+    .page-title input {
+        font-size: 1em;
+        padding: 4px;
+        border: 1px solid #ccc;
+        border-radius: 3px;
+        width: 100%;
+        max-width: 300px;
     }
     .actions button {
       margin-left: 0.5rem;
@@ -138,7 +188,16 @@ export class PageViewer extends LitElement {
     return html`
       <breadcrumb-nav .currentPageId=${this.page.id}></breadcrumb-nav>
       <div class="page-header">
-        <h2 class="page-title">${this.page.title || "Untitled"}</h2>
+        <h2 class="page-title" @click=${this.startTitleEdit}>
+          ${this.isEditingTitle 
+            ? html`<input 
+                type="text" 
+                .value=${this.page.title} 
+                @blur=${this.saveTitleEdit}
+                @keydown=${this.handleTitleKeydown}
+                id="titleEditor">`
+            : html`<span>${this.page.title || "Untitled"}</span>`}
+        </h2>
         <div class="actions">
           <button @click=${this.handleNewSubPage}>New Sub-Page</button>
           <button @click=${this.toggleEditMode}>${this.isEditing ? "Preview" : "Edit"}</button>
