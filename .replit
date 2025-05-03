@@ -5,9 +5,9 @@ run = "npm run dev"
 channel = "stable-24_05"
 
 [deployment]
-run = ["sh", "-c", "npm run dev"]
+run = ["sh", "-c", "npx vite preview --host --port 5173"]
+build = ["sh", "-c", "npm run build"]
 
 [[ports]]
 localPort = 5173
 externalPort = 80
-exposeLocalhost = true
